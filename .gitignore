@@ -1,0 +1,29 @@
+# dependencias y build
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# secretos y configuracion local: NUNCA se suben
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# datos locales y logs
+*.log
+pgdata/
+*.sqlite
+*.db
+
+# editor / sistema
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+.claude/
+.mcp.json

@@ -1,0 +1,44 @@
+# Levanta la API y PostgreSQL. Las credenciales salen del archivo ".env" (ver .env.example);
+# si falta alguna obligatoria, compose se detiene en vez de usar un valor por defecto.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:?Define DB_USER en .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en .env}
+      POSTGRES_DB: ${DB_NAME:?Define DB_NAME en .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Sin "ports": la base de datos solo es alcanzable desde la red interna de compose
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:?}
+      DB_PASSWORD: ${DB_PASSWORD:?}
+      DB_NAME: ${DB_NAME:?}
+      DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-true}
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET en .env}
+      JWT_EXPIRES_IN_SECONDS: ${JWT_EXPIRES_IN_SECONDS:-3600}
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    ports:
+      # Solo accesible desde tu maquina
+      - '127.0.0.1:3000:3000'
+    restart: unless-stopped
+
+volumes:
+  pgdata:
